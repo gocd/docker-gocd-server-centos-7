@@ -41,11 +41,11 @@ RUN \
   chown root:root /usr/local/sbin/gosu && \
 # add our user and group first to make sure their IDs get assigned consistently,
 # regardless of whatever dependencies get added
-  groupadd -g ${GID} go && \ 
+  groupadd -g ${GID} go && \
   useradd -u ${UID} -g go -d /home/go -m go && \
 # install dependencies and other helpful CLI tools
   yum update -y && \
-  yum install -y java-1.8.0-openjdk-headless git mercurial subversion openssh-clients bash unzip curl && \
+  yum install -y java-11-openjdk-headless git mercurial subversion openssh-clients bash unzip curl && \
   yum clean all && \
 # download the zip file
   curl --fail --location --silent --show-error "<%= download_url %>" > /tmp/go-server.zip && \
