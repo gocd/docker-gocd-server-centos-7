@@ -45,7 +45,7 @@ RUN \
   useradd -u ${UID} -g go -d /home/go -m go && \
 # install dependencies and other helpful CLI tools
   yum update -y && \
-  yum install -y java-11-openjdk-headless git mercurial subversion openssh-clients bash unzip curl && \
+  yum install -y java-11-openjdk-headless git mercurial subversion openssh-clients bash unzip curl which && \
   yum clean all && \
 # download the zip file
   curl --fail --location --silent --show-error "<%= download_url %>" > /tmp/go-server.zip && \
