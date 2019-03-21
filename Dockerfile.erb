@@ -32,7 +32,7 @@ ARG UID=1000
 ARG GID=1000
 
 ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini-static-amd64 /usr/local/sbin/tini
-ADD https://github.com/tianon/gosu/releases/download/1.10/gosu-amd64 /usr/local/sbin/gosu
+ADD https://github.com/tianon/gosu/releases/download/1.11/gosu-amd64 /usr/local/sbin/gosu
 
 RUN \
   chmod 0755 /usr/local/sbin/tini && \
@@ -45,8 +45,11 @@ RUN \
   useradd -u ${UID} -g go -d /home/go -m go && \
 # install dependencies and other helpful CLI tools
   yum update -y && \
-  yum install -y java-11-openjdk-headless git mercurial subversion openssh-clients bash unzip curl which && \
+  yum install -y java-11-openjdk-headless mercurial subversion openssh-clients bash unzip curl which centos-release-scl && \
+  yum install -y rh-git29 && \
   yum clean all && \
+  cp /opt/rh/rh-git29/enable /etc/profile.d/rh-git29.sh && \
+  source /opt/rh/rh-git29/enable && \
 # download the zip file
   curl --fail --location --silent --show-error "<%= download_url %>" > /tmp/go-server.zip && \
 # unzip the zip file into /go-server, after stripping the first path prefix
