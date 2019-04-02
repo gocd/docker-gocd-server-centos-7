@@ -1,5 +1,6 @@
 require 'erb'
 require 'json'
+require 'open-uri'
 
 def versionFile(name)
   version_file_location = ENV["VERSION_FILE_LOCATION"] || 'version.json'
@@ -28,6 +29,9 @@ gocd_version = versionFile('go_version') || get_var('GOCD_VERSION')
 gocd_git_sha = versionFile('git_sha') || get_var('GOCD_GIT_SHA')
 
 download_url = ENV['GOCD_SERVER_DOWNLOAD_URL'] || "https://download.gocd.org/experimental/binaries/#{gocd_full_version}/generic/go-server-#{gocd_full_version}.zip"
+
+adoptopenjdk_assets = JSON.parse(open('https://api.github.com/repos/AdoptOpenJDK/openjdk12-binaries/releases/latest').read)['assets']
+adoptopenjre_url = adoptopenjdk_assets.find {|asset| asset['name'] =~ /jre_x64_linux_hotspot.*.tar.gz/ }['browser_download_url']
 
 tag = ENV['TAG']
 

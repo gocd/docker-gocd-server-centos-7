@@ -30,6 +30,7 @@ ENV LANG=en_US.utf8
 
 ARG UID=1000
 ARG GID=1000
+ENV GO_JAVA_HOME=/go-server/jre
 
 ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini-static-amd64 /usr/local/sbin/tini
 ADD https://github.com/tianon/gosu/releases/download/1.11/gosu-amd64 /usr/local/sbin/gosu
@@ -45,11 +46,16 @@ RUN \
   useradd -u ${UID} -g go -d /home/go -m go && \
 # install dependencies and other helpful CLI tools
   yum update -y && \
-  yum install -y java-11-openjdk-headless mercurial subversion openssh-clients bash unzip curl which centos-release-scl && \
+  yum install -y mercurial subversion openssh-clients bash unzip curl which centos-release-scl && \
   yum install -y rh-git29 && \
   yum clean all && \
   cp /opt/rh/rh-git29/enable /etc/profile.d/rh-git29.sh && \
   source /opt/rh/rh-git29/enable && \
+# install and extract openjdk
+  curl --fail --location --silent --show-error "<%= adoptopenjre_url %>" > /tmp/openjdk.tar.gz && \
+  mkdir -p /go-server/jre && \
+  tar -xf /tmp/openjdk.tar.gz -C /go-server/jre --strip 1 && \
+  rm -rf /tmp/openjdk.tar.gz && \
 # download the zip file
   curl --fail --location --silent --show-error "<%= download_url %>" > /tmp/go-server.zip && \
 # unzip the zip file into /go-server, after stripping the first path prefix
