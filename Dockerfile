@@ -18,19 +18,19 @@
 ###############################################################################################
 
 FROM alpine:latest as gocd-server-unzip
-COPY go-server-19.4.0-8971.zip /tmp/go-server-19.4.0-8971.zip
-RUN unzip /tmp/go-server-19.4.0-8971.zip -d /
-RUN mv /go-server-19.4.0 /go-server
+COPY go-server-19.3.0-8959.zip /tmp/go-server-19.3.0-8959.zip
+RUN unzip /tmp/go-server-19.3.0-8959.zip -d /
+RUN mv /go-server-19.3.0 /go-server
 
 FROM centos:7
 MAINTAINER ThoughtWorks, Inc. <support@thoughtworks.com>
 
-LABEL gocd.version="19.4.0" \
+LABEL gocd.version="19.3.0" \
   description="GoCD server based on centos version 7" \
   maintainer="ThoughtWorks, Inc. <support@thoughtworks.com>" \
   url="https://www.gocd.org" \
-  gocd.full.version="19.4.0-8971" \
-  gocd.git.sha="527696a0a5310f404e9012b74514b671ee4c5ad0"
+  gocd.full.version="19.3.0-8959" \
+  gocd.git.sha="2c0a76ae7403804f7e0274d2e1976485555767f7"
 
 # the ports that go server runs on
 EXPOSE 8153 8154
