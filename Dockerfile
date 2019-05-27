@@ -18,19 +18,22 @@
 ###############################################################################################
 
 FROM alpine:latest as gocd-server-unzip
-COPY go-server-19.3.0-8959.zip /tmp/go-server-19.3.0-8959.zip
-RUN unzip /tmp/go-server-19.3.0-8959.zip -d /
-RUN mv /go-server-19.3.0 /go-server
+RUN \
+  apk --no-cache upgrade && \
+  apk add --no-cache curl && \
+  curl --fail --location --silent --show-error "https://download.gocd.org/binaries/19.4.0-9155/generic/go-server-19.4.0-9155.zip" > /tmp/go-server-19.4.0-9155.zip
+RUN unzip /tmp/go-server-19.4.0-9155.zip -d /
+RUN mv /go-server-19.4.0 /go-server
 
 FROM centos:7
 MAINTAINER ThoughtWorks, Inc. <support@thoughtworks.com>
 
-LABEL gocd.version="19.3.0" \
+LABEL gocd.version="19.4.0" \
   description="GoCD server based on centos version 7" \
   maintainer="ThoughtWorks, Inc. <support@thoughtworks.com>" \
   url="https://www.gocd.org" \
-  gocd.full.version="19.3.0-8959" \
-  gocd.git.sha="2c0a76ae7403804f7e0274d2e1976485555767f7"
+  gocd.full.version="19.4.0-9155" \
+  gocd.git.sha="0f01ab091e85a0d735b8b580eee5f83245fba2e5"
 
 # the ports that go server runs on
 EXPOSE 8153 8154
@@ -65,7 +68,7 @@ RUN \
   yum install --assumeyes rh-git29 && \
   cp /opt/rh/rh-git29/enable /etc/profile.d/rh-git29.sh && \
   yum clean all && \
-  curl --fail --location --silent --show-error 'https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12%2B33/OpenJDK12U-jre_x64_linux_hotspot_12_33.tar.gz' --output /tmp/jre.tar.gz && \
+  curl --fail --location --silent --show-error 'https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.1%2B12/OpenJDK12U-jre_x64_linux_hotspot_12.0.1_12.tar.gz' --output /tmp/jre.tar.gz && \
   mkdir -p /gocd-jre && \
   tar -xf /tmp/jre.tar.gz -C /gocd-jre --strip 1 && \
   rm -rf /tmp/jre.tar.gz && \
