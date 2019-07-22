@@ -21,25 +21,24 @@ FROM alpine:latest as gocd-server-unzip
 RUN \
   apk --no-cache upgrade && \
   apk add --no-cache curl && \
-  curl --fail --location --silent --show-error "https://download.gocd.org/binaries/19.5.0-9272/generic/go-server-19.5.0-9272.zip" > /tmp/go-server-19.5.0-9272.zip
-RUN unzip /tmp/go-server-19.5.0-9272.zip -d /
-RUN mv /go-server-19.5.0 /go-server
+  curl --fail --location --silent --show-error "https://download.gocd.org/binaries/19.6.0-9515/generic/go-server-19.6.0-9515.zip" > /tmp/go-server-19.6.0-9515.zip
+RUN unzip /tmp/go-server-19.6.0-9515.zip -d /
+RUN mv /go-server-19.6.0 /go-server
 
 FROM centos:7
 MAINTAINER ThoughtWorks, Inc. <support@thoughtworks.com>
 
-LABEL gocd.version="19.5.0" \
+LABEL gocd.version="19.6.0" \
   description="GoCD server based on centos version 7" \
   maintainer="ThoughtWorks, Inc. <support@thoughtworks.com>" \
   url="https://www.gocd.org" \
-  gocd.full.version="19.5.0-9272" \
-  gocd.git.sha="496bf8b95e603c1f3980ae59042bc559eecbbbc0"
+  gocd.full.version="19.6.0-9515" \
+  gocd.git.sha="4b674c10941b6c27d7ec2a28dd946518d9211b7a"
 
 # the ports that go server runs on
 EXPOSE 8153 8154
 
 ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini-static-amd64 /usr/local/sbin/tini
-ADD https://github.com/tianon/gosu/releases/download/1.11/gosu-amd64 /usr/local/sbin/gosu
 
 # force encoding
 ENV LANG en_US.UTF-8
@@ -50,36 +49,37 @@ ENV BASH_ENV="/opt/rh/rh-git29/enable"
 ENV ENV="/opt/rh/rh-git29/enable"
 
 ARG UID=1000
-ARG GID=1000
 
 RUN \
 # add mode and permissions for files we added above
   chmod 0755 /usr/local/sbin/tini && \
   chown root:root /usr/local/sbin/tini && \
-  chmod 0755 /usr/local/sbin/gosu && \
-  chown root:root /usr/local/sbin/gosu && \
 # add our user and group first to make sure their IDs get assigned consistently,
 # regardless of whatever dependencies get added
-  groupadd -g ${GID} go && \
-  useradd -u ${UID} -g go -d /home/go -m go && \
+# add user to root group for gocd to work on openshift
+  useradd -u ${UID} -g root -d /home/go -m go && \
   yum update -y && \
-  yum install -y mercurial subversion openssh-clients bash unzip curl && \
   yum install --assumeyes centos-release-scl && \
-  yum install --assumeyes rh-git29 && \
+  yum install --assumeyes rh-git29 mercurial subversion openssh-clients bash unzip curl procps sysvinit-tools coreutils && \
   cp /opt/rh/rh-git29/enable /etc/profile.d/rh-git29.sh && \
   yum clean all && \
   curl --fail --location --silent --show-error 'https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.1%2B12/OpenJDK12U-jre_x64_linux_hotspot_12.0.1_12.tar.gz' --output /tmp/jre.tar.gz && \
   mkdir -p /gocd-jre && \
   tar -xf /tmp/jre.tar.gz -C /gocd-jre --strip 1 && \
   rm -rf /tmp/jre.tar.gz && \
-  mkdir -p /docker-entrypoint.d
-
-COPY --from=gocd-server-unzip /go-server /go-server
-# ensure that logs are printed to console output
-COPY logback-include.xml /go-server/config/logback-include.xml
-COPY install-gocd-plugins /usr/local/sbin/install-gocd-plugins
-COPY git-clone-config /usr/local/sbin/git-clone-config
+  mkdir -p /go-server /docker-entrypoint.d /go-working-dir /godata
 
 ADD docker-entrypoint.sh /
 
+COPY --from=gocd-server-unzip /go-server /go-server
+# ensure that logs are printed to console output
+COPY --chown=go:root logback-include.xml /go-server/config/logback-include.xml
+COPY --chown=go:root install-gocd-plugins /usr/local/sbin/install-gocd-plugins
+COPY --chown=go:root git-clone-config /usr/local/sbin/git-clone-config
+
+RUN chown -R go:root /go-server /docker-entrypoint.d /go-working-dir /godata /docker-entrypoint.sh \
+    && chmod -R g=u /go-server /docker-entrypoint.d /go-working-dir /godata /docker-entrypoint.sh
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
+USER go
